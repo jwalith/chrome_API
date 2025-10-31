@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Job Matcher - AI-Powered Resume Optimization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: #ffffff;
+            padding: 24px 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 24px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1f2937;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+        p {
+            color: #6b7280;
+            text-align: center;
+            margin: 0 0 20px 0;
+            font-size: 14px;
+        }
+        .upload-section, .user-info {
+            margin: 16px 0;
+            padding: 16px 18px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .upload-section h3, .user-info h3 {
+            margin: 0 0 12px 0;
+            color: #1f2937;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        input[type="file"] {
+            margin: 8px 0;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        button:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            overflow: auto;
+            max-height: 200px;
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            background-color: #ffffff;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #374151;
+        }
+        .chat-container {
+            margin: 20px 0;
+            height: 600px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fafbfc;
+        }
+        .message {
+            margin: 12px 0;
+            padding: 14px 16px;
+            border-radius: 10px;
+            max-width: 85%;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+        .message strong {
+            font-weight: 600;
+        }
+        .message.ai strong {
+            color: #2563eb;
+        }
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+        }
+        .message.ai {
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .chat-input-container {
+            display: flex;
+            padding: 12px;
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+            border-radius: 0 0 10px 10px;
+        }
+        #chatInput {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        #chatInput:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        #sendBtn {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background: #10b981;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        #sendBtn:hover {
+            background: #059669;
+        }
+        .action-buttons {
+            margin: 16px 0;
+            display: flex;
+            gap: 12px;
+        }
+        .action-buttons button {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+        }
+        .action-buttons button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+        .action-buttons button:active {
+            transform: translateY(0);
+        }
+        .cover-letter-display {
+            margin-top: 16px;
+            padding: 18px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .cover-letter-display h3 {
+            margin: 0 0 12px 0;
+            color: #1f2937;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        /* Simple side-by-side diff */
+        .diff-container { 
+            margin-top: 12px; 
+            display: flex; 
+            gap: 16px; 
+        }
+        .diff-pane { 
+            flex: 1; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 8px; 
+            background: #fafafa;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .diff-pane h4 { 
+            margin: 0; 
+            padding: 10px 14px; 
+            font-size: 13px; 
+            font-weight: 600;
+            background: #f1f5f9; 
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+        }
+        .diff-pane pre { 
+            margin: 0; 
+            padding: 12px; 
+            white-space: pre-wrap; 
+            line-height: 1.6; 
+            font-size: 13px;
+            color: #1f2937;
+        }
+        .disabled-tip { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+        }
+        textarea {
+            font-family: inherit;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resume Job Matcher</h1>
+        <p>Upload your resume to analyze and optimize it against job requirements</p>
+            
+        
+        <div class="upload-section">
+            <h3>Upload Resume</h3>
+            <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt">
+            <button id="uploadBtn">Upload Resume</button>
+        </div>
+        
+        <div class="user-info">
+            <h3>Your Information</h3>
+            <div id="resumeContent">No resume uploaded yet...</div>
+        </div>
+    </div>
+    
+    <script>
+        // Message counter for unique IDs
+        let messageCounter = 0;
+        function showToast(msg, ok){ const t=document.createElement('div'); t.textContent=msg; t.style.position='fixed'; t.style.bottom='16px'; t.style.right='16px'; t.style.padding='10px 14px'; t.style.borderRadius='6px'; t.style.background= ok?'#10b981':'#ef4444'; t.style.color='#fff'; t.style.zIndex='9999'; document.body.appendChild(t); setTimeout(()=> t.remove(), 2200); }
+        
+        // Check if we have data from URL parameters
+        window.addEventListener('load', function() {
+            const params = new URLSearchParams(window.location.search);
+            const jobTitle = params.get('jobTitle');
+            const company = params.get('company');
+            const jobDescription = params.get('jobDescription');
+            const src = params.get('src');
+            const extIdFromQuery = params.get('extId');
+            const resumeText = localStorage.getItem('userResume');
+            
+            // Persist extension ID for reliable resume handoff (removes hardcoded fallback)
+            if (extIdFromQuery) {
+                localStorage.setItem('extensionId', extIdFromQuery);
+            }
+            
+            // If opened from extension, try fetching from it first
+            if (src === 'ext' && extIdFromQuery) {
+                (async () => {
+                    try {
+                        const response = await new Promise((resolve)=> chrome.runtime.sendMessage(extIdFromQuery, { type: 'GET_REWRITE_DATA' }, resolve));
+                        const data = response || {};
+                        if (data.jobTitle && (data.resumeText || resumeText)) {
+                            updatePageWithData({ jobTitle: data.jobTitle, company: data.company, jobDescription: data.jobDescription, resumeText: data.resumeText || resumeText || '' });
+                            return;
+                        }
+                    } catch (e) {
+                        // Fall through to URL params if extension fetch fails
+                    }
+                })();
+            }
+            
+            // Fallback: if URL includes job data and we have resume, render directly
+            if (jobTitle && resumeText) {
+                updatePageWithData({ jobTitle, company, jobDescription, resumeText });
+            }
+        });
+        
+        function updatePageWithData(data) {
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <h1>Job vs Resume Rewriter</h1>
+                <p>Generating recommendations for: ${data.jobTitle} at ${data.company}</p>
+                
+                <div class="upload-section" style="background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); border-color: #c7d2fe;">
+                    <h3 style="color: #4f46e5; margin-bottom: 10px;">💼 Job Information</h3>
+                    <div id="jobInfo" style="color: #1f2937; font-size: 14px; line-height: 1.8;">
+                        <strong style="color: #4f46e5;">Position:</strong> ${escapeHtml(data.jobTitle)}<br>
+                        <strong style="color: #4f46e5;">Company:</strong> ${escapeHtml(data.company)}
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="rewriteBtnWeb" title="Rewrite resume points" onclick="rewriteResumePoints()">✏️ Rewrite Resume Points</button>
+                    <button id="coverLetterBtnWeb" title="Generate a cover letter" onclick="generateCoverLetter()">📝 Generate Cover Letter</button>
+                </div>
+                
+                <div id="resumeRewriteDisplay" style="display:none;"></div>
+                <div id="coverLetterDisplay" style="display:none;"></div>
+                
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message ai" id="initial-message">
+                            <strong>AI Assistant:</strong> Generating recommended resume points...
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" placeholder="Ask me anything about your resume and this job...">
+                        <button id="sendBtn" onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            `;
+            
+            // Store data globally for chat function
+            window.currentJobData = data;
+            
+            // Enable Enter key to send
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // Apply capability gates and auto-generate recommendations
+            applyCapabilityGates();
+            // Automatically generate and show recommended resume points
+            generateInitialRecommendations(data);
+        }
+        
+        async function generateInitialRecommendations(data) {
+            try {
+                // Check if Prompt API is available
+                if (typeof LanguageModel === 'undefined') {
+                    updateMessage('initial-message', 'Error: Prompt API not available in this browser.');
+                    return;
+                }
+                
+                // Check availability
+                const availability = await LanguageModel.availability();
+                if (availability === 'unavailable') {
+                    updateMessage('initial-message', 'Error: Prompt API not available. You need Chrome 138+ with AI features enabled.');
+                    return;
+                }
+                
+                // Create prompt for AI
+                const prompt = `You are an ATS-alignment assistant.
+
+Goal: Transform the resume so it aligns with the job by explicitly adding missing JD skills, removing irrelevant bullets, and returning a final alignment score.
+
+Return STRICT HTML with exactly these sections only:
+<div class="section"><div class="section-title">Match Score</div><div id="match-score">...</div></div>
+<div class="section"><div class="section-title">Missing JD Skills</div><ul id="missing-skills">...</ul></div>
+<div class="section"><div class="section-title">Suggested Bullets</div><ol id="bullets">...</ol></div>
+<div class="section"><div class="section-title">Removed/De-emphasized</div><ul id="removed">...</ul></div>
+<div class="section"><div class="section-title">Updated Technical Skills</div><ul id="tech-skills">...</ul></div>
+
+Instructions:
+- Identify top JD skills/keywords first. Mark which are missing from the resume.
+- Write 3–6 STAR-style bullets that explicitly incorporate missing skills with metrics; avoid first person; 1 line each.
+- List bullets/areas to remove or de-emphasize if not relevant to the JD.
+- Propose an updated Technical Skills list that adds missing JD skills and removes irrelevant ones.
+- Provide Match Score as a percentage after your proposed updates.
+
+Context:
+Job Title: ${data.jobTitle}
+Company: ${data.company}
+Job Description: ${data.jobDescription.substring(0, 3000)}
+Resume: ${data.resumeText.substring(0, 3000)}`;
+
+                // Create session and get response
+                const session = await LanguageModel.create();
+                const response = await session.prompt(prompt);
+                
+                // Update message with AI response
+                updateMessage('initial-message', response);
+                
+                // Add a follow-up message from AI
+                setTimeout(() => {
+                    addMessageToChat('You can ask me to refine these, make them more specific, or ask "What skills am I missing?"', 'ai');
+                }, 500);
+                
+            } catch (error) {
+                updateMessage('initial-message', `Error generating recommendations: ${error.message}`);
+            }
+        }
+        
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            const fileInput = document.getElementById('resumeFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file first!');
+                return;
+            }
+            
+            if (file.name.endsWith('.pdf')) {
+                // Handle PDF files
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const arrayBuffer = e.target.result;
+                    pdfjsLib.getDocument(arrayBuffer).promise.then(function(pdf) {
+                        let fullText = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            pdf.getPage(i).then(function(page) {
+                                page.getTextContent().then(function(textContent) {
+                                    const pageText = textContent.items.map(item => item.str).join(' ');
+                                    fullText += pageText + '\n';
+                                    if (i === pdf.numPages) {
+                                        saveResumeData(fullText, file);
+                                    }
+                                });
+                            });
+                        }
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                // Handle text files
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const resumeText = e.target.result;
+                    saveResumeData(resumeText, file);
+                };
+                reader.readAsText(file);
+            }
+        });
+        
+        function saveResumeData(resumeText, file) {
+            // Save to localStorage (backup)
+            localStorage.setItem('userResume', resumeText);
+            localStorage.setItem('resumeFileName', file.name);
+            localStorage.setItem('uploadDate', new Date().toISOString());
+            
+            // Send resume to extension
+            if (window.chrome && chrome.runtime && chrome.runtime.sendMessage) {
+                const configuredExtensionId = localStorage.getItem('extensionId') || "pmamofhomcghfakmephbjpheemklpiip";
+                chrome.runtime.sendMessage(
+                    configuredExtensionId,
+                    { type: 'SAVE_RESUME', data: resumeText, fileName: file.name },
+                    () => {}
+                );
+            }
+            
+            document.getElementById('resumeContent').innerHTML = 
+                `<strong>File:</strong> ${file.name}<br>
+                 <strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB<br>
+                 <strong>Content Preview:</strong><br>
+                 <pre>${resumeText.substring(0, 500)}...</pre>`;
+        };
+        
+        // Chat function
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Clear input
+            input.value = '';
+            
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            
+            // Show "AI is typing..."
+            const typingId = addMessageToChat('AI is thinking...', 'ai');
+            
+            try {
+                // Get job and resume data
+                const data = window.currentJobData || {};
+                
+                // Create prompt for AI (used by both Prompt API and Gemini fallback)
+                const prompt = `You are helping improve a resume for a job application.
+
+Job Title: ${data.jobTitle}
+Company: ${data.company}
+
+Job Description:
+${(data.jobDescription||'').substring(0, 3000)}
+
+Resume:
+${(data.resumeText||'').substring(0, 3000)}
+
+User's question: ${message}
+
+Please provide a helpful, actionable response to help the user improve their resume for this specific job.`;
+
+                // Try Prompt API first
+                if (typeof LanguageModel !== 'undefined') {
+                    const availability = await LanguageModel.availability();
+                    if (availability !== 'unavailable') {
+                        const session = await LanguageModel.create();
+                        const response = await session.prompt(prompt);
+                        updateMessage(typingId, response);
+                        return;
+                    }
+                }
+
+                // Fallback: Gemini Developer API
+                const geminiText = await callGeminiAPI(prompt);
+                updateMessage(typingId, geminiText);
+                
+            } catch (error) {
+                // Last resort error display
+                updateMessage(typingId, `Error: ${error.message}`);
+            }
+        }
+        
+        // Gemini Developer API fallback
+        async function callGeminiAPI(promptText) {
+            const apiKey = await getGeminiApiKey();
+            if (!apiKey) {
+                throw new Error('Gemini API key not set.');
+            }
+            const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+            const res = await fetch(`${endpoint}?key=${encodeURIComponent(apiKey)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        role: 'user',
+                        parts: [{ text: promptText }]
+                    }]
+                })
+            });
+            if (!res.ok) {
+                const errText = await res.text().catch(()=> '');
+                throw new Error(`Gemini error ${res.status}: ${errText}`);
+            }
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join('\n') || 'No response';
+            return text;
+        }
+        
+        async function getGeminiApiKey() {
+            let key = localStorage.getItem('geminiApiKey');
+            if (!key) {
+                // Ask once; store for future requests
+                key = window.prompt('Enter your Gemini API key (stored locally)');
+                if (key) localStorage.setItem('geminiApiKey', key.trim());
+            }
+            return key && key.trim();
+        }
+        
+        function addMessageToChat(text, type) {
+            const messagesDiv = document.getElementById('chatMessages');
+            if (!messagesDiv) return null;
+            const messageDiv = document.createElement('div');
+            messageCounter++;
+            messageDiv.className = `message ${type}`;
+            messageDiv.id = `msg-${messageCounter}`;
+            messageDiv.innerHTML = formatMessage(text);
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            return messageDiv.id;
+        }
+        
+        function formatMessage(text) {
+            // Convert markdown-style formatting to HTML
+            let formatted = text
+                // Bold text **text** -> <strong>text</strong>
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                // Italic *text* -> <em>text</em>
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                // Line breaks
+                .replace(/\n/g, '<br>');
+            
+            return formatted;
+        }
+        
+        function updateMessage(messageId, text) {
+            const messageDiv = document.getElementById(messageId);
+            if (!messageDiv) {
+                addMessageToChat('Error: Message not found', 'ai');
+                return;
+            }
+            // Preserve the class name when updating
+            const originalClass = messageDiv.className;
+            messageDiv.innerHTML = formatMessage(text);
+            messageDiv.className = originalClass;
+        }
+        
+        // Helper: Extract bullets from resume text
+        function extractResumeBullets(resumeText) {
+            return resumeText.split(/\n+/)
+                .filter(line => /^[\s]*[-•\d+.)]/i.test(line.trim()))
+                .map(line => line.replace(/^[\s]*[-•\d+.)]\s*/, '').trim())
+                .filter(Boolean);
+        }
+
+        // Helper: Extract top JD keywords (tools/skills) - dynamic extraction
+        function extractTopJDKeywords(jdText) {
+            // Return a relevant JD snippet - let the Prompt API analysis provide the actual skills
+            return (jdText || '').substring(0, 500) || 'see job description';
+        }
+
+        // Rewrite resume points using Rewriter API with few-shot examples
+        async function rewriteResumePoints() {
+            const displayDiv = document.getElementById('resumeRewriteDisplay');
+            displayDiv.style.display = 'block';
+            displayDiv.innerHTML = '<p>⏳ Analyzing gaps and rewriting resume points...</p>';
+            
+            try {
+                // Get job and resume data
+                const data = window.currentJobData;
+                
+                // Step 1: Use Prompt API to analyze gaps and create rewrite plan with examples
+                if (typeof LanguageModel !== 'undefined') {
+                    const promptAvail = await LanguageModel.availability();
+                    if (promptAvail !== 'unavailable') {
+                        try {
+                            displayDiv.innerHTML = '<p>⏳ Step 1/2: Analyzing JD gaps...</p>';
+                            const promptSession = await LanguageModel.create();
+                            
+                            const bullets = extractResumeBullets(data.resumeText).slice(0, 5);
+                            const analysisPrompt = `Analyze resume bullets against this job description and return a JSON rewrite plan.
+
+Job Title: ${data.jobTitle}
+Company: ${data.company}
+Job Description: ${data.jobDescription.substring(0, 4000)}
+
+Resume Bullets Sample:
+${bullets.join('\n')}
+
+Return JSON with this structure:
+{
+  "missingSkills": ["skill1", "skill2"],
+  "rewriteInstructions": [
+    {
+      "originalBullet": "example bullet",
+      "missingTerms": ["term1", "term2"],
+      "targetExample": "rewritten example with missing terms integrated naturally"
+    }
+  ]
+}
+
+Focus on adding JD-specific skills/tools mainly related to context like Finance, anomaly detection and naturally add into existing bullets , you are allowed to remove existing bullets if they are not relevant to the JD and add new bullets if needed.`;
+
+                            const analysis = await promptSession.prompt(analysisPrompt);
+                            let plan = {};
+                            try {
+                                const cleanJson = analysis.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                                plan = JSON.parse(cleanJson);
+            } catch (e) {
+                // Using fallback examples if plan parsing fails
+            }
+                            
+                            // Step 2: Use Rewriter API with enhanced context including few-shot examples
+                            if (typeof Rewriter !== 'undefined') {
+                                const rewriterAvail = await Rewriter.availability();
+                                if (rewriterAvail !== 'unavailable') {
+                                    displayDiv.innerHTML = '<p>⏳ Step 2/2: Rewriting with examples...</p>';
+                                    const rewriterSession = await Rewriter.create();
+                                    
+                                    // Build context with examples
+                                    const examplesText = plan.rewriteInstructions?.slice(0, 2).map(inst => 
+                                        `ORIGINAL: ${inst.originalBullet}\nREWRITTEN: ${inst.targetExample}`
+                                    ).join('\n\n') || '';
+                                    
+                                    const defaultExample = `ORIGINAL: Designed enterprise-grade NLP systems using spaCy, BERT, NLTK for text classification and document parsing.
+REWRITTEN: Designed enterprise-grade NLP systems using spaCy, BERT, NLTK, and Hugging Face Transformers for named entity recognition (NER), text classification, and document parsing to process unstructured reports, contracts, and user feedback.`;
+                                    
+                                    const enhancedContext = `Role: ${data.jobTitle} at ${data.company}
+
+Job Description Key Skills: ${plan.missingSkills?.join(', ') || extractTopJDKeywords(data.jobDescription)}
+
+REWRITING EXAMPLES (apply this pattern to add missing JD skills naturally):
+${examplesText || defaultExample}
+
+Instructions:
+- For each bullet, ADD missing JD skills/tools naturally into the sentence structure
+- Keep all original achievements, metrics, and impact statements
+- Maintain ATS-friendly format (no first person, action verbs, 1 line per bullet)
+- Ensure logical flow after adding terms - insert them where they make semantic sense
+- If a bullet mentions a tool family (e.g., "NLP tools"), expand to include specific JD-relevant tools
+- Do not remove existing relevant content unless it conflicts with JD requirements
+
+Resume to rewrite:
+${data.resumeText.substring(0, 8000)}`;
+
+                                    const result = await rewriterSession.rewrite(data.resumeText, {
+                                        context: enhancedContext,
+                                        style: 'professional',
+                                        focus: 'add missing JD skills logically, preserve achievements and metrics',
+                                        outputLanguage: 'en'
+                                    });
+                                    
+                                    const rewritten = result?.rewrittenText || result?.text || result;
+                                    
+                                    displayDiv.innerHTML = `
+                                        <div class="cover-letter-display">
+                                            <h3 style="margin-top:0;">Improved Resume Points:</h3>
+                                            <pre style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(rewritten)}</pre>
+                                            <button onclick="copyRewrite()" style="margin-top:10px; padding:8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">📋 Copy to Clipboard</button>
+                                            <button onclick="sendRewriteToLatex()" style="margin-top:10px; margin-left:8px; padding:8px 16px; background:#6c63ff; color:white; border:none; border-radius:4px; cursor:pointer;">📄 Update LaTeX & Build PDF</button>
+                                        </div>
+                                    `;
+                                    return;
+                                }
+                            }
+                        } catch (promptError) {
+                            // Fallback to Rewriter-only approach
+                        }
+                    }
+                }
+                
+                // Fallback: Original Rewriter-only approach
+                if (typeof Rewriter === 'undefined') {
+                    displayDiv.innerHTML = '<p style="color:red;">Error: Rewriter API not available in this browser.</p>';
+                    return;
+                }
+                
+                const availability = await Rewriter.availability();
+                if (availability === 'unavailable') {
+                    displayDiv.innerHTML = '<p style="color:red;">Error: Rewriter API not available. You need Chrome 140+ with AI model installed.</p>';
+                    return;
+                }
+                
+                const session = await Rewriter.create();
+                
+                // Rewrite resume text to match job requirements (fallback)
+                const result = await session.rewrite(data.resumeText, {
+                    context: `Role: ${data.jobTitle} at ${data.company}. JD: ${data.jobDescription.substring(0, 800)}.
+Instructions: If JD skills are missing, ADD new bullets that explicitly include them with metrics; REMOVE or de-emphasize bullets irrelevant to the JD; STAY ATS-friendly (no first person, action verbs, 1 line per bullet). Also propose an updated Technical Skills list that adds missing JD skills. Return bullets first, then a 'Technical Skills:' section.`,
+                    style: 'professional',
+                    focus: 'add missing JD skills, remove irrelevant, maximize ATS alignment',
+                    outputLanguage: 'en'
+                });
+                
+                const rewritten = result?.rewrittenText || result?.text || result;
+                
+                // Display the rewritten resume and actions
+                displayDiv.innerHTML = `
+                    <div class="cover-letter-display">
+                        <h3 style="margin-top:0;">Improved Resume Points:</h3>
+                        <pre style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(rewritten)}</pre>
+                        <button onclick="copyRewrite()" style="margin-top:10px; padding:8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">📋 Copy to Clipboard</button>
+                        <button onclick="sendRewriteToLatex()" style="margin-top:10px; margin-left:8px; padding:8px 16px; background:#6c63ff; color:white; border:none; border-radius:4px; cursor:pointer;">📄 Update LaTeX & Build PDF</button>
+                    </div>
+                `;
+                
+            } catch (error) {
+                displayDiv.innerHTML = `<p style="color:red;">Error rewriting resume: ${error.message}</p>`;
+            }
+        }
+
+        // Send rewritten bullets to local Flask (Resume/app.py) and build PDF
+        async function sendRewriteToLatex() {
+            try {
+                const pre = document.querySelector('#resumeRewriteDisplay pre');
+                if (!pre) { alert('No rewritten text found.'); return; }
+                // Ask which company block to replace in LaTeX
+                const company = prompt('Enter the company name in your LaTeX resume to replace bullets for:', 'Tata Consultancy Services');
+                if (!company) return;
+                // Split bullets on lines (strip numbering)
+                const bullets = pre.textContent
+                    .split(/\n+/)
+                    .map(s => s.replace(/^\s*\d+[\).]\s*/, '').replace(/^[-•]\s*/, '').trim())
+                    .filter(Boolean);
+                if (bullets.length === 0) { alert('Could not extract bullets from rewritten text.'); return; }
+                const res = await fetch('http://127.0.0.1:5000/api/update_and_build', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company, bullets })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Update failed');
+                alert('LaTeX updated and PDF built!\n' + data.pdf_path);
+            } catch (e) {
+                alert('Failed to update LaTeX: ' + e.message);
+            }
+        }
+
+        // Helper functions
+        function escapeHtml(s){ return (s||'').replace(/[&<>]/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+        function tokenize(t){
+            const stop = new Set(['and','or','the','a','an','to','for','of','in','on','with','by','is','are','as','at','from','this','that','be','will','can','using','use','you','we','they','our','your']);
+            return (t||'').toLowerCase().replace(/[^a-z0-9+.# ]/g,' ').split(/\s+/).filter(w=>w && w.length>2 && !stop.has(w));
+        }
+        function extractTopKeywords(text, limit){
+            const f = {};
+            for (const w of tokenize(text)) f[w] = (f[w]||0)+1;
+            return Object.entries(f).sort((a,b)=> b[1]-a[1]).slice(0, limit||30).map(([k])=>k);
+        }
+        function computeAlignmentScore(jd, resume){
+            const jdTop = new Set(extractTopKeywords(jd, 60));
+            const res = new Set(tokenize(resume));
+            let present = [], missing = [];
+            jdTop.forEach(k=> (res.has(k) ? present : missing).push(k));
+            const score = Math.round((present.length / Math.max(1, present.length+missing.length)) * 100);
+            return { score, present, missing };
+        }
+        
+        function copyRewrite() {
+            const rewriteText = document.querySelector('#resumeRewriteDisplay pre');
+            if (rewriteText) {
+                navigator.clipboard.writeText(rewriteText.textContent).then(() => {
+                    alert('Resume points copied to clipboard!');
+                }).catch(err => {
+                    alert('Failed to copy: ' + err.message);
+                });
+            }
+        }
+        
+        // Generate cover letter using Writer API
+        async function generateCoverLetter() {
+            const displayDiv = document.getElementById('coverLetterDisplay');
+            displayDiv.style.display = 'block';
+            displayDiv.innerHTML = '<p>⏳ Generating your cover letter...</p>';
+            
+            try {
+                // Check if Writer API is available
+                if (typeof Writer === 'undefined') {
+                    displayDiv.innerHTML = '<p style="color:red;">Error: Writer API not available in this browser.</p>';
+                    return;
+                }
+                
+                // Check availability
+                const availability = await Writer.availability();
+                if (availability === 'unavailable') {
+                    displayDiv.innerHTML = '<p style="color:red;">Error: Writer API not available. You need Chrome 140+ with AI model installed.</p>';
+                    return;
+                }
+                
+                // Get job and resume data
+                const data = window.currentJobData;
+                
+                // Use Writer API with proper structure
+                // Valid WriterTone values: 'casual', 'formal', 'neutral'
+                const chosenTone = (localStorage.getItem('defaultTone') || 'formal');
+                const session = await Writer.create({
+                    tone: chosenTone,
+                    format: 'plain-text',
+                    length: 'medium'
+                });
+                
+                // Writer API expects topic/subject and context separately
+                const topic = `Cover letter for ${data.jobTitle} at ${data.company}`;
+                const context = `Job Description: ${data.jobDescription.substring(0, 2000)}. Applicant's Experience: ${data.resumeText.substring(0, 2000)}. Requirements: Professional tone, 3-4 paragraphs, highlight relevant skills, show enthusiasm.`;
+                
+                const result = await session.write(topic, { context });
+                const coverLetter = typeof result === 'string' ? result : (result?.text ?? result?.output ?? '');
+                
+                // Display the cover letter
+                displayDiv.innerHTML = `
+                    <div class="cover-letter-display">
+                        <h3 style="margin-top:0;">Generated Cover Letter:</h3>
+                        <textarea id="coverLetterEditor" style="width:100%; min-height:260px; padding:10px; border:1px solid #e5e7eb; border-radius:6px; font-size:14px; line-height:1.6;">${coverLetter.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+                        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                            <button onclick="proofreadCoverLetter()" style="padding:8px 16px; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500;">🧹 Proofread</button>
+                            <button onclick="copyCoverLetter()" style="padding:8px 16px; background:#10b981; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:500;">📋 Copy</button>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                displayDiv.innerHTML = `<p style="color:red;">Error generating cover letter: ${error.message}</p>`;
+            }
+        }
+
+        // Capability detection to disable buttons and add helpful tooltips
+        async function applyCapabilityGates() {
+            try {
+                const rewriteBtn = document.getElementById('rewriteBtnWeb');
+                const coverBtn = document.getElementById('coverLetterBtnWeb');
+                // Guard if not yet rendered
+                if (!rewriteBtn || !coverBtn) return;
+
+                // Prompt availability (for chat/recommendations handled elsewhere)
+                const promptAvailable = typeof LanguageModel !== 'undefined' ? (await LanguageModel.availability()) !== 'unavailable' : false;
+
+                // Rewriter availability
+                const rewriterAvailable = typeof Rewriter !== 'undefined' ? (await Rewriter.availability()) !== 'unavailable' : false;
+                if (!rewriterAvailable) {
+                    rewriteBtn.disabled = true;
+                    rewriteBtn.classList.add('disabled-tip');
+                    rewriteBtn.title = 'Requires Chrome Rewriter API (Chrome 140+ with local model).';
+                }
+
+                // Writer availability
+                const writerAvailable = typeof Writer !== 'undefined' ? (await Writer.availability()) !== 'unavailable' : false;
+                if (!writerAvailable) {
+                    coverBtn.disabled = true;
+                    coverBtn.classList.add('disabled-tip');
+                    coverBtn.title = 'Requires Chrome Writer API (Chrome 140+ with local model).';
+                }
+
+            } catch (e) {
+                // Capability gating failed silently
+            }
+        }
+
+        
+        function copyCoverLetter() {
+            const editor = document.getElementById('coverLetterEditor');
+            const text = editor ? editor.value : (document.querySelector('#coverLetterDisplay pre')?.textContent || '');
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Cover letter copied to clipboard!');
+                }).catch(err => {
+                    alert('Failed to copy: ' + err.message);
+                });
+            }
+        }
+
+        async function proofreadCoverLetter() {
+            const editor = document.getElementById('coverLetterEditor');
+            if (!editor) { alert('Editor not found'); return; }
+            // Do not trim; keep exact content so offsets align with corrections
+            const original = editor.value;
+            if (!original) { alert('Nothing to proofread.'); return; }
+
+            const displayDiv = document.getElementById('coverLetterDisplay');
+            const processingNote = document.createElement('div');
+            processingNote.style.marginTop = '8px';
+            processingNote.textContent = 'Proofreading...';
+            displayDiv.appendChild(processingNote);
+            try {
+                if (typeof Proofreader === 'undefined') {
+                    processingNote.textContent = 'Proofreader API not available in this browser.';
+                    return;
+                }
+                const availability = await Proofreader.availability();
+                if (availability === 'unavailable') {
+                    processingNote.textContent = 'Proofreader unavailable (enable flag, origin trial, and install model).';
+                    return;
+                }
+
+                const session = await Proofreader.create({
+                    expectedInputLanguages: ['en'],
+                    monitor(m) {
+                        m.addEventListener('downloadprogress', (e) => {
+                            const pct = Math.round((e.loaded || 0) * 100);
+                            processingNote.textContent = `Downloading model… ${pct}%`;
+                        });
+                    }
+                });
+
+                // Try proofreading in smaller chunks to avoid quality guardrails
+                const paragraphs = original.split(/\n{2,}/);
+                const correctedParts = [];
+                for (const para of paragraphs) {
+                    try {
+                        const r = await session.proofread(para);
+                        correctedParts.push(r?.corrected ?? r?.correctedText ?? r?.text ?? r?.output ?? r?.correction ?? para);
+                    } catch (pe) {
+                        // If a paragraph fails, keep it as-is for now; we may fix in fallback below
+                        correctedParts.push(para);
+                    }
+                }
+                let refined = correctedParts.join('\n\n');
+
+                // If nothing changed, or output seems blocked, use Prompt API fallback copy-edit
+                if ((refined === original) || /low quality/i.test(refined)) {
+                    if (typeof LanguageModel !== 'undefined') {
+                        try {
+                            const avail = await LanguageModel.availability();
+                            if (avail !== 'unavailable') {
+                                const s = await LanguageModel.create();
+                                const prompt = `Copy-edit the following text for grammar, spelling, and punctuation only. Do not change meaning or tone. Return plain text only, no markdown.\n\n${original.substring(0, 12000)}`;
+                                const out = await s.prompt(prompt);
+                                if (out && typeof out === 'string') {
+                                    refined = out;
+                                }
+                            }
+                        } catch (pp) {
+                            // Keep refined as-is if fallback fails
+                        }
+                    }
+                }
+
+                // Per docs, the corrected text is in `corrected`; but we already merged chunks/fallback
+                editor.value = refined;
+
+                // Prefer the API-provided corrections array; otherwise compute a simple diff count
+                let count = 0; // chunked run -> compute from diff
+                if (!count && refined !== original) {
+                    count = (function countEdits(a, b){
+                        let i = 0, j = 0, edits = 0; 
+                        while (i < a.length && j < b.length) {
+                            if (a[i] === b[j]) { i++; j++; continue; }
+                            edits++;
+                            let ai = i, bj = j;
+                            // advance until we resync on a common char or reach end
+                            const stop = Math.min(a.length - i, b.length - j) + 1;
+                            let step = 1;
+                            for (; step < stop; step++) {
+                                if (a[i + step] === b[j] || a[i] === b[j + step]) break;
+                            }
+                            i += (a[i + step] === b[j]) ? step : 1;
+                            j += (a[i] === b[j + step]) ? step : 1;
+                        }
+                        if (i < a.length || j < b.length) edits++;
+                        return edits;
+                    })(original, refined);
+                }
+                processingNote.textContent = (refined === original && !count)
+                    ? 'Proofreading complete. No changes needed.'
+                    : `Proofreading complete. ${count} correction(s) applied.`;
+
+                // Show side-by-side diff so the user can see what changed
+                let diffHost = document.getElementById('proofDiff');
+                if (!diffHost) {
+                    diffHost = document.createElement('div');
+                    diffHost.id = 'proofDiff';
+                    diffHost.className = 'diff-container';
+                    diffHost.innerHTML = `
+                        <div class="diff-pane">
+                            <h4>Original</h4>
+                            <pre id="diffOriginal"></pre>
+                        </div>
+                        <div class="diff-pane">
+                            <h4>Corrected</h4>
+                            <pre id="diffCorrected"></pre>
+                        </div>`;
+                    displayDiv.appendChild(diffHost);
+                }
+                const origPre = document.getElementById('diffOriginal');
+                const corrPre = document.getElementById('diffCorrected');
+                if (origPre && corrPre) {
+                    origPre.textContent = original;
+                    corrPre.textContent = refined;
+                }
+            } catch (e) {
+                processingNote.textContent = 'Proofreading failed: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
