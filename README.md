@@ -2,9 +2,6 @@
 
 Improve ATS alignment between your resume and a LinkedIn Job Description. Extract a JD from LinkedIn, analyze alignment, rewrite resume bullets to add missing JD skills, generate a cover letter, and proofread it — powered by Chrome’s on-device AI APIs, with an optional Gemini fallback.
 
-## Demo Video
-- Upload your < 3 minute demo to YouTube/Vimeo and place the public link here.
-
 ## Live Demo / Access
 - Website: host `Ext_plus_site/website/index.html` on a static host (Netlify/Vercel/Cloudflare or local at `http://127.0.0.1:5500/`).
 - Extension: load unpacked `Ext_plus_site/extension` in Chrome.
